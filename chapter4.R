@@ -1,5 +1,11 @@
+## chapter4.R
+## Machine Learning with R
+## Nakano Keisuke (2024-03-07)
+
+
 ## 準備
 library(tidyverse)
+library(plotly)
 
 
 # リスト 4-1-(1)
@@ -164,7 +170,9 @@ for (i in 1:w0_n) {
 }
 df |>
   ggplot(aes(ww0, ww1, z = f_num)) +
-  geom_contour()
+  geom_contour() +
+  xlim(-2, 2) + ylim(-2, 2) +
+  coord_fixed(ratio = 1)
 ## # ベクトル表示
 ## plt.subplot(1, 2, 2)
 ## plt.quiver(                      # (G) fの勾配のベクトル表示
@@ -546,7 +554,6 @@ for (i in 1:x0_n) {
 ##   ax.view_init(40, -125)
 ##
 ## plt.show()
-library(plotly)
 plot_ly() |>
   add_trace(
     data = y,
@@ -695,7 +702,9 @@ for (i in 1:x0_n) {
 }
 df |>
   ggplot(aes(x0, x1, z = f)) +
-  geom_contour()
+  geom_contour() +
+  xlim(-2, 3) + ylim(-2, 3) +
+  coord_fixed(ratio = 5 / 5)
 # サーフェス表示
 ## ax = plt.subplot(1, 2, 2, projection="3d")
 ## ax.plot_surface(
