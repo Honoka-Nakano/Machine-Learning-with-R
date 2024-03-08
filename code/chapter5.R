@@ -141,6 +141,8 @@ plot_ly() |>
     z = df$J,
     alpha = 0.7,
     size = 3)
+# 追記
+persp(w0, w1, J, theta = -60, phi = 10, lwd = 0.5)
 ## # 等高線表示
 ## plt.subplot(1, 2, 2)
 ## cont = plt.contour(
@@ -390,15 +392,346 @@ X0_min <- 5; X0_max <- 30
 X1_min <- 40; X1_max <- 75
 
 
+# リスト 5-2-(2)
+## print(np.round(X0, 2))
+print(round(X0, 2))
+## print(np.round(X1, 2))
+print(round(X1, 2))
+## print(np.round(T, 2))
+print(round(t, 2))
 
 
+# リスト 5-2-(3)
+## # 2次元データの表示 ----------
+## def show_data2d(ax, x0, x1, t):  # axは3dグラフ描画のため
+##   for i in range(len(x0)):
+##     ax.plot(  # データ点の下の直線の描画
+##       [x0[i], x0[i]],       # 直線の両端のx座標
+##       [x1[i], x1[i]],       # 直線の両端のy座標
+##       [120, t[i]],          # 直線の両端のz座標
+##       color="gray",
+##     )
+##   ax.plot(      # データ点の描画
+##     x0,                       # x座標
+##     x1,                       # y座標
+##     t,                        # z座標
+##     "cornflowerblue",         # 色
+##     marker="o",               # マーカーの形状
+##     linestyle="None",         # 点をつなげる線は描かない
+##     markeredgecolor="black",  # マーカーの輪郭の色
+##     markersize=6,             # マーカーのサイズ
+##     markeredgewidth=0.5,      # マーカーの輪郭線の太さ
+##   )
+##   ax.view_init(elev=35, azim=-75)  # グラフの向きの指定
+
+## # メイン ----------
+## plt.figure(figsize=(6, 5))
+## ax = plt.subplot(projection="3d")
+## show_data2d(ax, X0, X1, T)
+## plt.show()
+scatterplot3d::scatterplot3d(x = X0, y = X1, z = t, type = 'h')
+
+# リスト 5-2-(4)
+## # 面の表示 ----------
+## def show_plane(ax, w):
+##   # 表示データの計算
+##   x0_n, x1_n = 5, 5
+##   x0 = np.linspace(X0_min, X0_max, x0_n)
+##   x1 = np.linspace(X1_min, X1_max, x1_n)
+##   xx0, xx1 = np.meshgrid(x0, x1)  # グリッド座標の作成
+##   y = w[0] * xx0 + w[1] * xx1 + w[2]  # (A) 式5-28
+##   # サーフェス表示
+##   ax.plot_surface(
+##     xx0, xx1, y,
+##     rstride=1, cstride=1, alpha=0.3, color="blue", edgecolor="black",
+##   )
+show_plane <- function(w) {
+  x0_n <- 5; x1_n <- 5
+  x0 <- seq(X0_min, X0_max, length.out = x0_n)
+  x1 <- seq(X1_min, X1_max, length.out = x1_n)
+  xx0 <- as.array(matrix(x0, nrow = x0_n, ncol = x1_n, byrow = TRUE))
+  xx1 <- array(x1, dim = c(x0_n, x1_n))
+  n <- 1
+  df <- data.frame(array(NA, dim = c(x0_n * x1_n, 3))) |>
+    rename(x0 = 'X1', x1 = 'X2', y = 'X3')
+  for (i in 1:x0_n) {
+    for (j in 1:x1_n) {
+      df[n, 1] <- xx0[i, j]
+      df[n, 2] <- xx1[i, j]
+      df[n, 3] <- w[1] * xx0[i, j] + w[2] * xx1[i, j] + w[3]
+      n <- n + 1
+    }
+  }
+  plot3d(df$x0, df$x1, df$y, type = 's')
+}
+
+## # 面の平均二乗誤差(MSE)関数 ----------
+## def mse_plane(x0, x1, t, w):
+##   y = w[0] * x0 + w[1] * x1 + w[2]  # (A) 式5-28
+##   mse = np.mean((y - t) ** 2)
+##   return mse
+mse_plane <- function(x0, x1, t, w) {
+  y <- w[1] * x0 + w[2] * x1 + w[3]
+  mse <- mean((y - t)^2)
+  return(mse)
+}
+
+## # メイン ----------
+## w = np.array([1.5, 1, 90])
+w <- array(c(1.5, 1, 90), dim = c(1, 3))
+## mse = mse_plane(X0, X1, T, w)  # MSEを計算
+mse <- mse_plane(X0, X1, t, w)
+## # 結果表示
+## print(f"SD = {np.sqrt(mse):.2f} cm")
+cat('SD =', sqrt(mse) |> round(2), 'cm')
+
+## # グラフ描画 ----------
+## plt.figure(figsize=(6, 5))
+## ax = plt.subplot(projection="3d")
+## show_plane(ax, w)
+## show_data2d(ax, X0, X1, T)
+## plt.show()
+show_plane(w) # 面にする関数が見つからなかったので一旦点で．
 
 
+# リスト 5-2-(5)
+## # 解析解 ----------
+## def fit_plane(x0, x1, t):  
+##   c_tx0 = np.mean(t * x0) - np.mean(t) * np.mean(x0)     # cov(t, x0)
+##   c_tx1 = np.mean(t * x1) - np.mean(t) * np.mean(x1)     # cov(t, x1)
+##   c_x0x1 = np.mean(x0 * x1) - np.mean(x0) * np.mean(x1)  # cov(x0, x1)
+##   v_x0 = np.var(x0)                                      # var(x0)
+##   v_x1 = np.var(x1)                                      # var(x1)
+##   # 式5-34
+##   w0 = (c_tx1 * c_x0x1 - v_x1 * c_tx0) / (c_x0x1 ** 2 - v_x0 * v_x1)
+##   # 式5-35
+##   w1 = (c_tx0 * c_x0x1 - v_x0 * c_tx1) / (c_x0x1 ** 2 - v_x0 * v_x1)
+##   # 式5-36
+##   w2 = -w0 * np.mean(x0) - w1 * np.mean(x1) + np.mean(t)
+##   w = np.array([w0, w1, w2])
+##   return w
+fit_plane <- function(x0, x1, t) {
+  c_tx0 <- mean(t * x0) - mean(t) * mean(x0)
+  c_tx1 <- mean(t * x1) - mean(t) * mean(x1)
+  c_x0x1 <- mean(x0 * x1) - mean(x0) * mean(x1)
+  v_x0 <- var(x0)
+  v_x1 <- var(x1)
+  w0 <- (c_tx1 * c_x0x1 - v_x1 * c_tx0) / (c_x0x1^2 - v_x0 * v_x1)
+  w1 <- (c_tx0 * c_x0x1 - v_x0 * c_tx1) / (c_x0x1^2 - v_x0 * v_x1)
+  w2 <- -w0 * mean(x0) - w1 * mean(x1) + mean(t)
+  w <- array(c(w0, w1, w2), dim = c(1, 3))
+  return(w)
+}
+
+## # メイン ----------
+## w = fit_plane(X0, X1, T)       # wを計算
+w <- fit_plane(X0, X1, t)
+## mse = mse_plane(X0, X1, T, w)  # MSEを計算
+mse <- mse_plane(X0, X1, t, w)
+## # 結果表示
+## print(f"w0 = {w[0]:.2f}, w1 = {w[1]:.2f}, w2 = {w[2]:.2f}")
+cat('w0 =', round(w[1], 2), 'w1 =', round(w[2], 2), 'w2 =', round(w[3], 2))
+## print(f"SD = {np.sqrt(mse):.2f} cm")
+cat('SD =', sqrt(mse) |> round(2), 'cm')
+
+## # グラフ描画 ----------
+## plt.figure(figsize=(6, 5))
+## ax = plt.subplot(projection="3d")
+## show_plane(ax, w)
+## show_data2d(ax, X0, X1, T)
+## plt.show()
+planes3d(w[1], w[2], -1, w[3])
 
 
+## %reset
+rm(list = ls(all.names = TRUE))
 
 
+# リスト 5-3-(1)
+## %matplotlib inline
+## import numpy as np
+## import matplotlib.pyplot as plt
+NULL
+
+## # データのロード ----------
+## data = np.load("ch5_data.npz")
+data <- read.csv('ch5_data.csv')
+## X = data["X"]
+X <- data$X
+## X_min = 0
+X_min <- 0
+## X_max = data["X_max"]
+X_max <- 30
+## N = data["N"]
+N <- 16
+## T = data["T"]
+t <- data$t
 
 
+# リスト 5-3-(2)
+## # ガウス関数 ----------
+## def gauss(x, mu, s):
+##   y = np.exp(-((x - mu) ** 2) / (2 * s ** 2))  # 式5-64
+##   return y
+gauss <- function(x, mu, s) {
+  y <- exp(-((x - mu)^2) / (2 * s^2))
+  return(y)
+}
 
 
+# リスト 5-3-(3)
+## # メイン ----------
+## M = 4                                # ガウス関数の数
+M <- 4
+## mu = np.linspace(5, 30, M)           # 平均パラメータ
+mu <- seq(5, 30, length.out = M)
+## s = mu[1] - mu[0]                    # (A) 標準偏差パラメータ
+s <- mu[2] - mu[1]
+## xb = np.linspace(X_min, X_max, 100)
+xb <- seq(X_min, X_max, length.out = 100)
+## y = np.zeros((M, 100))  # M個のガウス関数の値を入れるyを準備
+y <- array(0, dim = c(100, M)) |> # 便宜上行と列を入れ替える．
+  data.frame() |>
+  rename(mu5 = 'X1',
+         mu13.3 = 'X2',
+         mu21.7 = 'X3',
+         mu30 = 'X4')
+## for j in range(M):
+##   y[j, :] = gauss(xb, mu[j], s)    # ガウス関数
+for (j in 1:M) {
+  y[, j] <- gauss(xb, mu[j], s)
+}
+
+## # グラフ描画 ----------
+## plt.figure(figsize=(4, 4))
+## for j in range(M):
+##   plt.plot(xb, y[j, :], "gray", linewidth=3)
+##   plt.xlim(X_min, X_max)
+##   plt.ylim(0, 1.2)
+##   plt.grid()
+##   plt.show()
+y <- y |>
+  pivot_longer(cols = mu5:mu30,
+               names_to = 'mu',
+               values_to = 'gauss') |>
+  mutate(x = rep(xb, each = 4))
+y |> ggplot() +
+  geom_line(aes(x = x, y = gauss,
+                color = mu)) +
+  labs(x = element_blank(), y = element_blank()) +
+  xlim(0, 30) + ylim(0, 1) +
+  coord_fixed(ratio = 30 / 1) +
+  theme(legend.position = 'none')
+
+
+# リスト 5-3-(4)
+## # 線形基底関数モデル ----------
+## def gauss_func(w, x):
+##   m = len(w) - 1        # ガウス関数の数
+##   mu = np.linspace(5, 30, m)
+##   s = mu[1] - mu[0]
+##   # xと同じサイズで要素が0のndarray型を作成
+##   y = np.zeros_like(x)
+##   # ここでは式5-66ではなく式5-65で実装
+##   for j in range(m):
+##     y = y + w[j] * gauss(x, mu[j], s)
+##   y = y + w[m]  # phiを掛けないパラメータを最後に加える
+##   return y
+gauss_func <- function(w, x) {
+  m <- length(w) - 1
+  mu <- seq(5, 30, length.out = m)
+  s = mu[2] - mu[1]
+  y <- array(0, dim = c(1, length(x)))
+  for (j in 1:m) {
+    y <- y + w[j] * gauss(x, mu[j], s)
+  }
+  y <- y + w[m]
+  return(y)
+}
+
+
+# リスト 5-3-(5)
+## # 線形基底関数モデルの平均二乗誤差(MSE) ----------
+## def mse_gauss_func(x, t, w):
+##   y = gauss_func(w, x)
+##   mse = np.mean((y - t) ** 2)
+##   return mse
+mse_gauss_func <- function(x, t, w) {
+  y <- gauss_func(w, x)
+  mse <- mean((y - t)^2)
+  return(mse)
+}
+
+
+# リスト 5-3-(6)
+## # 線形基底関数モデルの厳密解 ----------
+## def fit_gauss_func(x, t, m):
+##   mu = np.linspace(5, 30, m)
+##   s = mu[1] - mu[0]
+##   n = x.shape[0]
+##   # 式5-69 の計画行列phiを作成
+##   phi = np.ones((n, m + 1))  # (A) 要素が1のn x (m+1)行列
+##   for j in range(m):         # (B) 0～m-1列に値を割り振る
+##     phi[:, j] = gauss(x, mu[j], s)
+##   # 式5-68 で厳密解のwを計算
+##   w = np.linalg.inv(phi.T @ phi) @ phi.T @ t
+##   return w
+fit_gauss_func <- function(x, t, m) {
+  mu <- seq(5, 30, length.out = m)
+  s <- mu[2] - mu[1]
+  n <- length(x)
+  phi <- array(1, dim = c(n, m + 1))
+  for (j in 1:m) {
+    phi[, j] <- gauss(x, mu[j], s)
+  }
+  w <- solve(t(phi) %*% phi) %*% t(phi) %*% t
+  return(w)
+}
+
+
+# リスト 5-3-(7)
+## # ガウス基底関数表示 ----------
+## def show_gauss_func(w):
+##   x = np.linspace(X_min, X_max, 100)
+##   y = gauss_func(w, x)
+##   plt.plot(x, y, "gray", linewidth=4)
+show_gauss_func <- function(w) {
+  x <- seq(X_min, X_max, length.out = 100)
+  y <- gauss_func(w, x)
+  p <- tibble(a = x, b = y |> as.vector()) |>
+    ggplot() +
+    geom_line(aes(x = a, y = b),
+              color = 'gray')
+  return(p)
+}
+
+## # メイン ----------
+## M = 4                          # ガウス関数の数
+M <- 4
+## w = fit_gauss_func(X, T, M)    # wを計算
+w <- fit_gauss_func(X, t, M)
+## mse = mse_gauss_func(X, T, w)  # MSEを計算
+mse <- mse_gauss_func(X, t, w)
+## # 結果表示
+## print("w = ", np.round(w, 2))
+cat('w =', round(w, 2))
+## print(f"SD = {np.sqrt(mse):.2f} cm")
+cat('SD =', sqrt(mse) |> round(2), 'cm')
+
+## # グラフ描画 ----------
+## plt.figure(figsize=(4, 4))
+## show_gauss_func(w)
+## plt.plot(
+##   X, T, "cornflowerblue", 
+##   marker="o", linestyle="None", markeredgecolor="black",
+## )
+## plt.xlim(X_min, X_max)
+## plt.grid()
+## plt.show()
+show_gauss_func(w) +
+  geom_point(data    = tibble(a = X, b = t),
+             mapping = aes(x = a, y = b),
+             color   = 'cornflowerblue')
+
+# list 5-2-5, 3dplot
+# 途中．PytyhonとRの行列計算に違い．
