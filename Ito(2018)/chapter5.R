@@ -1,6 +1,6 @@
-## chapter5.R
-## Machine Learning with R
-## Nakano Keisuke (2024-03-07)
+## Machine-Learning-with-R/chapter5.R
+## 2024-03-07
+## Nakano Keisuke
 
 ## 準備
 library(tidyverse)

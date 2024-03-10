@@ -1,5 +1,5 @@
-## chapter6.R
-## Machine-Learning-with-T
+## Machine-Learning-with-R/chapter6.R
+## 2024-03-08
 ## Nakano Keisuke
 
 # 準備

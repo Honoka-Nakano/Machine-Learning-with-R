@@ -1,6 +1,6 @@
-## chapter4.R
-## Machine Learning with R
-## Nakano Keisuke (2024-03-07)
+## Machine-Learning-with-R/chapter4.R
+## 2024-03-05
+## Nakano Keisuke
 
 
 ## 準備
