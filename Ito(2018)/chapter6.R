@@ -277,24 +277,27 @@ NULL
 ##         jac=dcee_logistic, method="CG",
 ##     )
 ##    return res.x
-minimize <- function(w_init, x, t, alpha = 0.001, tau = 10000, eps = 0.1) {
-  w_for_calc <- w_init
-  w_hist <- array(NA, dim = c(tau, 2))
-  w_hist[1,] <- w_init
-  n <- 1
-  for (i in 1:tau) {
-    dcee <- dcee_logistic(w_for_calc, x, t)
-    w_for_calc <- w_for_calc - alpha * dcee
-    w_hist[i+1,] <- w_for_calc
-    if (max(abs(dcee)) < eps) break
-    n <- n + 1
-  }
-  cee <- cee_logistic(w_for_calc, x, t)
-  return(list(w = w_for_calc, w_history = w_hist[1:n,], cee = cee, dcee = dcee))
-}
-fit_logistic <- function(w_init, x, t) {
-  res <- minimize(w_init, x, t)
-}
+
+######## 共役勾配法の実装に苦戦中 ########
+
+# minimize <- function(w_init, x, t, alpha = 0.001, tau = 10000, eps = 0.1) {
+#   w_for_calc <- w_init
+#   w_hist <- array(NA, dim = c(tau, 2))
+#   w_hist[1,] <- w_init
+#   n <- 1
+#   for (i in 1:tau) {
+#     dcee <- dcee_logistic(w_for_calc, x, t)
+#     w_for_calc <- w_for_calc - alpha * dcee
+#     w_hist[i+1,] <- w_for_calc
+#     if (max(abs(dcee)) < eps) break
+#     n <- n + 1
+#   }
+#   cee <- cee_logistic(w_for_calc, x, t)
+#   return(list(w = w_for_calc, w_history = w_hist[1:n,], cee = cee, dcee = dcee))
+# }
+# fit_logistic <- function(w_init, x, t) {
+#   res <- minimize(w_init, x, t)
+# }
 
 # メイン ----------
 ## w_init = np.array([1.0, -1.0])  # wの初期値
@@ -310,26 +313,7 @@ cee <- res$cee
 ## show_data1d(X, T)
 ## plt.grid()
 ## plt.show()
-p <- show_logistic(res$w)
-show_data1d(X, t) + p$p
 
-x <- seq(X_min, X_max, length.out = 100)
-y <- logistic(x, res$w)
-df_logistic <- tibble(x = x, y = y) |>
-  mutate(id = 1:n())
-i <- df_logistic |>
-  filter(y > 0.5) |>
-  filter(y == min(y))
-boundary <- (x[i$id - 1] + x[i$id]) / 2
-df_point <- tibble(x = X, t = t)
-p <- ggplot() +
-  geom_line(data = df_logistic,
-            mapping = aes(x = x, y = y),
-            color = 'gray') +
-  geom_vline(xintercept = boundary, linetype = 'dashed') +
-  geom_point(data = df_point,
-             mapping = aes(x = x, y = t, color = as.factor(t)))
-plot(p)
 ## # 結果表示 ----------
 ## print(f"w0 = {w[0]:.2f}, w1 = {w[1]:.2f}")
 ## print(f"CEE = {cee:.2f}")
