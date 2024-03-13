@@ -246,11 +246,379 @@ print(round(res$b, 6))
 cee_FNN <- function(wv, M, K, x, t) {
   N <- nrow(x); D <- ncol(x)
   res <- FNN(wv, M, K, x)
-  cee <- -()
+  t_for_calc <- t(t) |>
+    as.vector() |>
+    as.array(dim = c(1, 6))
+  y_for_calc <- t(res$y) |>
+    as.vector() |>
+    as.array(dim = x(6, 1))
+  cee <- -(t_for_calc %*% log(y_for_calc)) / N
+  return(cee)
 }
 
 # テスト ----------
-wv = np.ones(15)
-M, K = 2, 3
-cee = cee_FNN(wv, M, K, X_train[:2, :], T_train[:2, :])
-print(f"cee = {cee:.6}")
+## wv = np.ones(15)
+wv <- rep(1, times = 15)
+## M, K = 2, 3
+M <- 2; K <- 3
+## cee = cee_FNN(wv, M, K, X_train[:2, :], T_train[:2, :])
+cee <- cee_FNN(wv, M, K, X_train[1:2,], T_train[1:2,])
+## print(f"cee = {cee:.6}")
+cat('cee =', cee)
+
+
+# リスト 7-1-(6)
+## # 平均交差エントロピー誤差の数値微分 ----------
+## def dcee_FNN_num(wv, M, K, x, t):
+##   epsilon = 0.001
+##   dwv = np.zeros_like(wv)
+##   # 式7-20の計算
+##   for iwv in range(len(wv)):
+##     wv_shifted = wv.copy()
+##     wv_shifted[iwv] = wv[iwv] + epsilon
+##     mse1 = cee_FNN(wv_shifted, M, K, x, t)
+##     wv_shifted[iwv] = wv[iwv] - epsilon
+##     mse2 = cee_FNN(wv_shifted, M, K, x, t)
+##     dwv[iwv] = (mse1 - mse2) / (2 * epsilon)
+##   return dwv
+dcee_FNN_num <- function(wv, M, K, x, t) {
+  epsilon <- 0.001
+  dwv <- array(0, dim = c(1, ncol(wv)))
+  for (iwv in 1:length(wv)) {
+    wv_shifted <- wv
+    wv_shifted[iwv] <- wv[iwv] + epsilon
+    mse1 <- cee_FNN(wv_shifted, M, K, x, t)
+    wv_shifted[iwv] <- wv[iwv] - epsilon
+    mse2 <- cee_FNN(wv_shifted, M, K, x, t)
+    dwv[iwv] <- (mse1 - mse2) / (2 * epsilon)
+  }
+  return(dwv)
+}
+
+## # -- dwvの棒グラフによる表示 ----------
+## def show_dwv(dwv, D, M):
+##   v_start = M * (D + 1)     # v の始めのインデックス
+##   v_end = dwv.shape[0] - 1  # v の最後のインデックス
+##   plt.bar(  # dwの表示
+##     range(0, v_start), dwv[:v_start],
+##     color="black", align="center",
+##   )
+##   plt.bar(  # dvの表示
+##     range(v_start, v_end + 1), dwv[v_start:],
+##     color="cornflowerblue", align="center",
+##   )
+##   plt.xticks(range(0, v_end + 1))
+##   plt.xlim(-1, v_end + 1)
+show_dwv(dwv, D, M) {
+  
+}
+
+## # テスト ----------
+## D, M, K, N = 2, 2, 3, 2
+D <- 2; M <- 2; K <- 3; N <- 2
+## wv_n = M * (D + 1) + K * (M + 1)
+wv_n <- M * (D + 1) + K * (M + 1)
+## np.random.seed(seed=1)
+set.seed(1)
+## wv = np.random.normal(
+##   0.0, 1.0, wv_n)  # 平均0.0分散1.0のwv_n個の乱数
+wv <- rnorm(wv_n)
+## dwv = dcee_FNN_num(
+##   wv, M, K, X_train[:N, :], T_train[:N, :])
+dwv <- dcee_FNN_num(wv, M, K, X_train[1:N,], T_train[1:N,])
+## print("numerical dwv")
+print('numerical dwv')
+## print("dwv =\n", np.round(dwv, 6))
+cat('dwv =', round(dwv, 6))
+
+## # グラフ描画 ----------
+## plt.figure(figsize=(5, 3))
+## show_dwv(dwv, D, M)
+## plt.show()
+df <- tibble(dwv = dwv) |>
+  mutate(id = 1:n(),
+         color = c(rep(0, times = 1:(M * (D + 1)) |> length()),
+                   rep(1, times = ((M * (D + 1) + 1):length(dwv)) |>
+                         length())))
+df |>
+  ggplot() +
+  geom_bar(aes(x = as.factor(id), y = dwv, fill = as.factor(color)),
+           stat = 'identity') +
+  labs(x = element_blank(), y = element_blank()) +
+  ylim(-0.4, 0.4) +
+  coord_fixed(ratio = 15 / 0.8) +
+  theme(legend.position = 'none')
+
+
+# リスト 7-1-(7)
+## import time
+NULL
+
+## # 数値微分を使った勾配法 -------
+## def fit_FNN_num(
+##   wv_init, M, K,
+##   x_train, t_train, x_test, t_test,
+##   tau_max, alpha,
+## ):
+##   # 訓練データの誤差の履歴保存用
+##   cee_train = np.zeros(tau_max)
+##   # テストデータの誤差の履歴保存用
+##   cee_test = np.zeros(tau_max)
+##   # wv の履歴保存用
+##   wv = np.zeros((tau_max, len(wv_init)))
+##   # wv の初期値をセットし、そのときの誤差を計算
+##   wv[0, :] = wv_init
+##   cee_train[0] = cee_FNN(wv_init, M, K, x_train, t_train)
+##   cee_test[0] = cee_FNN(wv_init, M, K, x_test, t_test)
+##   # 勾配法
+##   for tau in range(tau_max - 1):  # (A)
+##     dcee = dcee_FNN_num(wv[tau, :], M, K, x_train, t_train)
+##     wv[tau + 1, :] = wv[tau, :] - alpha * dcee
+##     cee_train[tau + 1] = \
+##       cee_FNN(wv[tau + 1, :], M, K, x_train, t_train)
+##     cee_test[tau + 1] = \
+##       cee_FNN(wv[tau + 1, :], M, K, x_test, t_test)
+##   wv_final = wv[-1, :]
+##   return wv_final, wv, cee_train, cee_test
+fit_FNN_num <- function(wv_init, M, K, x_train, t_train,
+                        x_test, t_test, tau_max, alpha) {
+  cee_train <- array(0, dim = c(1, tau_max))
+  cee_test <- array(0, dim = c(1, tau_max))
+  wv <- array(0, dim = c(tau_max, length(wv_init)))
+  wv[1,] <- wv_init
+  cee_train[1] <- cee_FNN(wv_init, M, K, x_train, t_train)
+  cee_test[1] <- cee_FNN(wv_init, M, K, x_test, t_test)
+  for (tau in 1:(tau_max - 1)) {
+    dcee <- dcee_FNN_num(wv[tau,], M, K, x_train, t_train)
+    wv[tau + 1,] <- wv[tau,] - alpha * dcee
+    cee_train[tau + 1] <- cee_FNN(wv[tau + 1,], M, K, x_train, t_train)
+    cee_test[tau + 1] <- cee_FNN(wv[tau + 1,], M, K, x_test, t_test)
+  }
+  wv_final <- wv[-1,]
+  return(list(wv_final = wv_final, wv = wv, cee_train = cee_train, cee_test = cee_test))
+}
+
+## # メイン ----------
+## start_time = time.time()
+NULL
+## D, M, K = 2, 2, 3
+D <- 2; M <- 2; K <- 3
+## wv_n = M * (D + 1) + K * (M + 1)
+wv_n <- M * (D + 1) + K * (M + 1)
+## np.random.seed(seed=1)
+set.seed(1)
+## wv_init = np.random.normal(0, 0.01, wv_n)  # wvの初期値
+wv_init <- rnorm(wv_n)
+## tau_max = 1000  # (B) 学習ステップ
+tau_max <- 1000
+## alpha = 0.5
+alpha <- 0.5
+## # 勾配法でwvを計算
+## wv, wv_hist, cee_train, cee_test = \
+## fit_FNN_num(
+##   wv_init, M, K,
+##   X_train, T_train, X_test, T_test,
+##   tau_max, alpha,
+## )
+res <- fit_FNN_num(wv_init, M, K, X_train, T_train, X_test, T_test,
+                   tau_max, alpha)
+## # 計算時間の表示
+## calculation_time = time.time() - start_time
+NULL
+## print(f"Calculation time:{calculation_time:.2f} sec")
+NULL
+
+
+# リスト 7-1-(8)
+## # 学習誤差の表示 ----------
+## plt.figure(figsize=(3, 3))
+## plt.plot(cee_train, "black", label="training")
+## plt.plot(cee_test, "cornflowerblue", label="test")
+## plt.legend()
+## plt.show()
+tibble(tau = rep(1:tau_max, times = 2),
+       cee = c(res$cee_train, res$cee_test),
+       type = rep(c('train', 'test'), each = tau_max)) |>
+  ggplot() +
+  geom_line(aes(x = tau, y = cee, color = type)) +
+  labs(x = element_blank(), y = element_blank()) +
+  xlim(0, 1000) + ylim(0, 2) +
+  coord_fixed(ratio = 1000 / 2) +
+  theme(legend.position = 'none')
+
+
+# リスト 7-1-(9)
+## # 重みの時間発展の表示 ----------
+## plt.figure(figsize=(3, 3))
+## v_start = M * (D + 1)  # v の始めのインデックス
+## plt.plot(wv_hist[:, :v_start], "black")
+## plt.plot(wv_hist[:, v_start:], "cornflowerblue")
+## plt.show()
+as.data.frame(res$wv) |>
+  pivot_longer(cols = c(1:ncol(res$wv)),
+               names_to = 'col',
+               values_to = 'wv',
+               names_prefix = 'V') |>
+  mutate(tau = rep(1:tau_max, each = ncol(res$wv))) |>
+  ggplot() +
+  geom_line(aes(x = tau, y = wv, color = col)) +
+  scale_color_manual(values = c(rep('black', times = c(1:(M * (D + 1))) |>
+                                      length()),
+                                rep('cornflowerblue', times = c((M * (D + 1) + 1):ncol(res$wv)) |>
+                                      length()))) +
+  labs(x = element_blank(), y = element_blank()) +
+  xlim(0, 1000) + ylim(-6, 8) +
+  coord_fixed(ratio = 1000 / 14) +
+  theme(legend.position = 'none')
+
+######## プロットに苦戦 ########
+
+# リスト 7-1-(10)
+## # 境界線表示関数 ----------
+## def show_FNN(wv, M, K):
+##     x0_n, x1_n = 60, 60  # 等高線表示の解像度
+##     x0 = np.linspace(X0_min, X0_max, x0_n)
+##     x1 = np.linspace(X1_min, X1_max, x1_n)
+##     xx0, xx1 = np.meshgrid(x0, x1)
+##     # xx0とxx1を1次元ベクトルに展開し、
+##     # それぞれを0列目と1行目に配置した行列xを作る
+##     x = np.c_[xx0.reshape(-1), xx1.reshape(-1)]
+##     # 行列xに対するyを一度に求める
+##     y, a, z, b = FNN(wv, M, K, x)
+##     for ic in range(K):
+##         f = y[:, ic]
+##         f = f.reshape(x1_n, x0_n)
+##         cont = plt.contour(  # 等高線表示
+##             xx0, xx1, f,
+##             levels=[0.5, 0.9], colors=["cornflowerblue", "black"],
+##         )
+##         cont.clabel(fmt="%.2f", fontsize=9)
+##     plt.xlim(X0_min, X0_max)
+##     plt.ylim(X1_min, X1_max)
+show_FNN <- function(wv, M, K) {
+  x0_n <- 60; x1_n <- 60
+  x0 <- seq(X0_min, X0_max, length.out = x0_n)
+  x1 <- seq(X1_min, X1_max, length.out = x1_n)
+  xx0 <- as.array(matrix(x0, nrow = x0_n, ncol = x1_n, byrow = TRUE))
+  xx1 <- array(x1, dim = c(x0_n, x1_n))
+  x <- array(NA, dim = c(x0_n * x1_n, 2))
+  x[, 1] <- rep(x0, times = x0_n)
+  x[, 2] <- rep(x1, each = x1_n)
+  res <- FNN(wv, M, K, x)
+  # for (ic in 1:K) {
+  #   f <- res$y[, ic]
+  # }
+  df <- as.data.frame(x) |>
+    rename(x0 = 'V1', x1 = 'V2') |>
+    mutate(y1 = res$y[,1],
+           y2 = res$y[,2],
+           y3 = res$y[,3])
+  df |>
+    ggplot(aes(x = x0, y = x1)) +
+    geom_contour(aes(z = y3), breaks = 0.8372)
+}
+
+## # 境界線の表示 ----------
+## plt.figure(figsize=(3, 3))
+## show_data(X_test, T_test)
+## show_FNN(wv, M, K)
+## plt.grid()
+## plt.show()
+
+
+# リスト 7-1-(11)
+## # -- 解析的微分 ----------
+## def dcee_FNN(wv, M, K, x, t):
+##     N, D = x.shape
+##     # wv を w と v に戻す
+##     v_start = M * (D + 1)
+##     w = wv[:v_start]
+##     w = w.reshape(M, D + 1)
+##     v = wv[v_start:]
+##     v = v.reshape(K, M + 1)
+##     # ① 入力xを入れて出力yを得る
+##     y, a, z, b = FNN(wv, M, K, x)
+##     # 出力変数の準備
+##     dwv = np.zeros_like(wv)
+##     dw = np.zeros((M, D + 1))
+##     dv = np.zeros((K, M + 1))
+##     delta1 = np.zeros(M)  # 1 層目誤差
+##     delta2 = np.zeros(K)  # 2 層目誤差 (k=0 の部分は使わず)
+##     for n in range(N):  # (A)
+##         # ② 2層（出力層）の誤差を得る
+##         for k in range(K):
+##             delta2[k] = y[n, k] - t[n, k]
+##         # ③ 1層（中間層）の誤差を得る
+##         for j in range(M):
+##             delta1[j] = z[n, j] * (1 - z[n, j]) * v[:, j] @ delta2
+##         # ④ vの更新分（dv）を得る
+##         for k in range(K):
+##             dv[k, :] = dv[k, :] + delta2[k] * z[n, :] / N
+##         # ④ wの更新分（dw）を得る
+##         for j in range(M):
+##             x_add1 = np.r_[x[n, :], 1]
+##             dw[j, :] = dw[j, :] + delta1[j] * x_add1 / N
+##     # dw と dv を合体させて dwv とする
+##     dwv = np.c_[
+##         dw.reshape((1, M * (D + 1))),
+##         dv.reshape((1, K * (M + 1))),
+##     ]
+##     dwv = dwv.reshape(-1)
+##     return dwv
+dcee_FNN <- function(wv, M, K, x, t) {
+  N <- nrow(x); D <- ncol(x)
+  v_start <- M * (D + 1)
+  w <- wv[1:v_start]
+  w <- as.array(w, dim = c(M, D + 1))
+  v <- wv[v_start:length(wv)]
+  v <- as.array(v, dim = c(K, M + 1))
+  res <- FNN(wv, M, K, x)
+  dwv <- array(0, dim = c(1, length(wv)))
+  dw <- array(0, dim = c(M, D + 1))
+  dv <- array(0, dim = c(K, M + 1))
+  delta1 <- array(0, dim = c(1, M))
+  delta2 <- array(0, dim = c(1, K))
+  for (n in 1:N) {
+    for (k in 1:K) {
+      delta2[k] <- res$y[n, k] - t[n, k]
+    }
+    for (j in 1:M) {
+      delta1[j] <- res$z[n, j] * (1 - z[n, j]) * v[, j] %*% delta2
+    }
+    for (k in 1:K) {
+      dv[k,] <- dv[k,] + delta2[k] * res$z[n,] / N
+    }
+    for (j in 1:M) {
+      x_add1 <- x
+    }
+  }
+}
+
+## # テスト ----------
+## D, M, K, N = 2, 2, 3, 2
+## wv_n = M * (D + 1) + K * (M + 1)
+## np.random.seed(seed=1)
+## wv = np.random.normal(0.0, 1.0, wv_n)
+## dwv_ana = dcee_FNN(wv, M, K, X_train[:N, :], T_train[:N, :])
+## dwv_num = dcee_FNN_num(wv, M, K, X_train[:N, :], T_train[:N, :])
+## # 結果表示
+## print("analytical dwv")
+## print("dwv =\n", np.round(dwv_ana, 6))
+## print("numerical dwv")
+## print("dwv =\n", np.round(dwv_num, 6))
+
+## # グラフ描画 ----------
+## plt.figure(figsize=(8, 3))
+## plt.subplots_adjust(wspace=0.5)
+## # 解析的微分
+## plt.subplot(1, 2, 1)
+## show_dwv(dwv_ana, D, M)
+## plt.title("analitical")
+## # 数値微分
+## plt.subplot(1, 2, 2)
+## show_dwv(dwv_num, D, M)
+## plt.title("numerical")
+## plt.show()
+
+
+
