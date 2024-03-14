@@ -4,13 +4,13 @@
 
 ## 準備
 library(tidyverse)
-library(plotly)
 
 
 # リスト 5-1-(1)
 ## %matplotlib inline
 ## import numpy as np
 ## import matplotlib.pyplot as plt
+NULL
 
 ## # データ生成 ----------
 ## np.random.seed(seed=1)          # 乱数を固定する
@@ -30,8 +30,8 @@ t <- prm[1] - prm[2] * exp(-prm[3] * X) + 4 * rnorm(N) # Tは予約語である�
 ##   "ch5_data.npz",
 ##   X=X, T=T, X_min=X_min, X_max=X_max, N=N,
 ## )
-write.csv(tibble(X = X, t = t),
-          file = 'ch5_data.csv')
+NULL
+
 
 # リスト 5-1-(2)
 ## print(X)
@@ -63,8 +63,8 @@ print(round(t, 2))
 ## plt.grid()                    # グリッドを表示する
 ## plt.show()
 ggplot() +
-  geom_point(data    = tibble(a = X, b = t),
-             mapping = aes(x = a, y = b),
+  geom_point(data    = tibble(x_plt = X, y_plt = t),
+             mapping = aes(x = x_plt, y = y_plt),
              color = 'cornflowerblue') +
   labs(x = element_blank(), y = element_blank()) +
   xlim(5, 30) + ylim(140, 180) +
@@ -79,7 +79,7 @@ ggplot() +
 ##   return mse
 mse_line <- function(x, t, w) {
   y <- w[1] * x + w[2]
-  mse <- mean((y - t)^2)
+  mse <- mean((y - t) ^ 2)
   return(mse)
 }
 
@@ -104,12 +104,11 @@ J <- array(0, dim = c(w1_n, w0_n))
 for (i0 in 1:w0_n) {
   for (i1 in 1:w1_n) {
     w <- array(c(w0[i0], w1[i1]), dim = c(1, 2))
-    J[i1, i0] <- mse_line(X, t, w)
+    J[i0, i1] <- mse_line(X, t, w)
   }
 }
 ## ww0, ww1 = np.meshgrid(w0, w1)          # グリッド座標の作成
-ww0 <- as.array(matrix(w0, nrow = w0_n, ncol = w1_n, byrow = TRUE))
-ww1 <- array(w1, dim = c(w0_n, w1_n))
+NULL
 
 ## # グラフ描画 ----------
 ## plt.figure(figsize=(9.5, 4))
@@ -123,26 +122,8 @@ ww1 <- array(w1, dim = c(w0_n, w1_n))
 ## ax.set_xticks([-20, 0, 20])     # x軸の目盛り指定
 ## ax.set_yticks([120, 140, 160])  # y軸の目盛り指定
 ## ax.view_init(20, -60)           # グラフの向きの指定
-df <- tibble(w0 = rep(w0, each = w0_n),
-             w1 = rep(w1, times = w1_n),
-             J = rep(NA, times = w0_n * w1_n))
-n <- 1
-for (i in 1:w0_n) {
-  for (j in 1:w1_n) {
-    df$J[n] <- J[i, j]
-    n <- n + 1
-  }
-}
-plot_ly() |>
-  add_trace(
-    data = df,
-    x = df$w0,
-    y = df$w1,
-    z = df$J,
-    alpha = 0.7,
-    size = 3)
-# 追記
-persp(w0, w1, J, theta = -60, phi = 10, lwd = 0.5)
+persp(w0, w1, J, theta = 40, phi = 20, lwd = 0.3,
+      xlab = '', ylab = '', zlab = '')
 ## # 等高線表示
 ## plt.subplot(1, 2, 2)
 ## cont = plt.contour(
@@ -152,13 +133,23 @@ persp(w0, w1, J, theta = -60, phi = 10, lwd = 0.5)
 ## cont.clabel(fmt="%d", fontsize=8)
 ## plt.grid()
 ## plt.show()
+df <- tibble(w0 = rep(w0, each = w0_n),
+             w1 = rep(w1, times = w1_n),
+             J = rep(NA, times = w0_n * w1_n)) # 空のデータフレームを作成．
+n <- 1
+for (i in 1:w0_n) {
+  for (j in 1:w1_n) {
+    df$J[n] <- J[i, j]
+    n <- n + 1
+  }
+}
 df |>
   ggplot() +
   geom_contour(aes(x = w0, y = w1, z = J),
                color = 'black') +
+  labs(x = element_blank(), y = element_blank()) +
   xlim(-25, 25) + ylim(120, 170) +
-  coord_flip() +
-  theme(aspect.ratio = 1)
+  coord_fixed(ratio = 50 / 50)
 
 
 # リスト 5-1-(7)

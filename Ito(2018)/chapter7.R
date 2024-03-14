@@ -569,11 +569,13 @@ dcee_FNN <- function(wv, M, K, x, t) {
   N <- nrow(x); D <- ncol(x)
   v_start <- M * (D + 1)
   w <- wv[1:v_start]
-  w <- as.array(w, dim = c(M, D + 1))
+  w <- array(w, dim = c(M, D + 1))
+  # w <- as.array(matrix(w, nrow = M, ncol = D + 1, byrow = TRUE))
   v <- wv[v_start:length(wv)]
-  v <- as.array(v, dim = c(K, M + 1))
+  v <- array(v, dim = c(K, M + 1))
+  # v <- as.array(matrix(v, nrow = K, ncol = M + 1, byrow = TRUE))
   res <- FNN(wv, M, K, x)
-  dwv <- array(0, dim = c(1, length(wv)))
+  # dwv <- array(0, dim = c(1, length(wv)))
   dw <- array(0, dim = c(M, D + 1))
   dv <- array(0, dim = c(K, M + 1))
   delta1 <- array(0, dim = c(1, M))
@@ -583,29 +585,41 @@ dcee_FNN <- function(wv, M, K, x, t) {
       delta2[k] <- res$y[n, k] - t[n, k]
     }
     for (j in 1:M) {
-      delta1[j] <- res$z[n, j] * (1 - z[n, j]) * v[, j] %*% delta2
+      delta1[j] <- res$z[n, j] * (1 - res$z[n, j]) * t(v[, j]) %*% t(delta2)
     }
     for (k in 1:K) {
       dv[k,] <- dv[k,] + delta2[k] * res$z[n,] / N
     }
     for (j in 1:M) {
-      x_add1 <- x
+      x_add1 <- array(c(x[n,], 1), dim = c(1, ncol(x) + 1))
+      dw[j,] <- dw[j,] + delta1[j] * x_add1 / N
     }
+    return(c(dw, dv))
   }
 }
 
 ## # テスト ----------
 ## D, M, K, N = 2, 2, 3, 2
+D <- 2; M <- 2; K <- 3; N <- 2
 ## wv_n = M * (D + 1) + K * (M + 1)
+wv_n <- M * (D + 1) + K + (M + 1)
 ## np.random.seed(seed=1)
+set.seed(1)
 ## wv = np.random.normal(0.0, 1.0, wv_n)
+wv <- rnorm(wv_n)
 ## dwv_ana = dcee_FNN(wv, M, K, X_train[:N, :], T_train[:N, :])
+dwv_ana <- dcee_FNN(wv, M, K, X_train[1:N,], T_train[1:N,])
 ## dwv_num = dcee_FNN_num(wv, M, K, X_train[:N, :], T_train[:N, :])
+dwv_num <- dcee_FNN_num(wv, M, K, X_train[1:N,], T_train[1:N,])
 ## # 結果表示
 ## print("analytical dwv")
+cat('analytical dwv')
 ## print("dwv =\n", np.round(dwv_ana, 6))
+cat('dwv =', round(dwv_ana, 6))
 ## print("numerical dwv")
+cat('numerical dwv')
 ## print("dwv =\n", np.round(dwv_num, 6))
+cat('dwv =', round(dwv_num, 6))
 
 ## # グラフ描画 ----------
 ## plt.figure(figsize=(8, 3))
@@ -619,6 +633,12 @@ dcee_FNN <- function(wv, M, K, x, t) {
 ## show_dwv(dwv_num, D, M)
 ## plt.title("numerical")
 ## plt.show()
+tibble(ana = dwv_ana, num = dwv_num) |>
+  mutate(id = 1:n(),
+         col = rep('w', times = v_start)) |>
+  ggplot() +
+  geom_bar(aes(x = id, y = ana),)
 
 
-
+# dcee_FNN関数内w, vの要素の並び．
+# for delta1 <- のとこ，転置してよかったか
