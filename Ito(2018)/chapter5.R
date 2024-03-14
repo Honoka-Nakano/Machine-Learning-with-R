@@ -66,9 +66,9 @@ ggplot() +
   geom_point(data    = tibble(x_plt = X, y_plt = t),
              mapping = aes(x = x_plt, y = y_plt),
              color = 'cornflowerblue') +
-  labs(x = element_blank(), y = element_blank()) +
   xlim(5, 30) + ylim(140, 180) +
-  coord_fixed(ratio = 25 / 40)
+  coord_fixed(ratio = 25 / 40) +
+  labs(x = element_blank(), y = element_blank())
 
 
 # リスト 5-1-(6)
@@ -147,9 +147,9 @@ df |>
   ggplot() +
   geom_contour(aes(x = w0, y = w1, z = J),
                color = 'black') +
-  labs(x = element_blank(), y = element_blank()) +
   xlim(-25, 25) + ylim(120, 170) +
-  coord_fixed(ratio = 50 / 50)
+  coord_fixed(ratio = 50 / 50) +
+  labs(x = element_blank(), y = element_blank())
 
 
 # リスト 5-1-(7)
@@ -210,7 +210,8 @@ fit_line_num <- function(x, t, w_init) {
   }
   w_final <- w[tau + 1,]
   w_hist <- w[1:(tau + 2),]
-  return(list(w_final = w_final, dmse = dmse, w_hist = w_hist))
+  res <- list(w_final = w_final, dmse = dmse, w_hist = w_hist)
+  return(res)
 }
 
 ## # メイン ----------
@@ -255,13 +256,12 @@ ggplot() +
   geom_contour(data    = df,
                mapping = aes(w0, w1, z = J),
                color = 'black') +
-  geom_point(data = tibble(a = w_history[,1], b = w_history[,2]),
-             mapping = aes(x = a, y = b),
+  geom_point(data = tibble(x_plt = w_history[,1], y_plt = w_history[,2]),
+             mapping = aes(x = x_plt, y = y_plt),
              color = 'cornflowerblue') +
   xlim(-25, 25) + ylim(120, 170) +
-  coord_flip() +
-  theme(aspect.ratio = 1)
-
+  coord_fixed(ratio = 50 / 50) +
+  labs(x = element_blank(), y = element_blank())
 
 # リスト 5-1-(10)
 ## # 線の表示 ----------
@@ -273,8 +273,8 @@ show_line <- function(w) {
   x = seq(X_min, X_max, length.out = 100)
   y <- w[1] * x + w[2]
   p <- ggplot() +
-    geom_line(data    = tibble(a = x, b = y),
-              mapping = aes(x = a, y = b),
+    geom_line(data    = tibble(x_plt = x, y_plt = y),
+              mapping = aes(x = x_plt, y = y_plt),
               color   = 'gray')
   return(p)
 }
@@ -291,8 +291,8 @@ show_line <- function(w) {
 ## plt.grid()
 ## plt.show()
 show_line(w) +
-  geom_point(data    = tibble(a = X, b = t),
-             mapping = aes(x = a, y = b),
+  geom_point(data    = tibble(x_plt = X, y_plt = t),
+             mapping = aes(x = x_plt, y = y_plt),
              color   = 'cornflowerblue') +
   xlim(5, 30) + ylim(140, 180) +
   coord_fixed(ratio = 25 / 40) +
@@ -315,7 +315,7 @@ fit_line <- function(x, t) {
   mt <- mean(t)
   mtx <- mean(t * x)
   mxx <- mean(x * x)
-  w0 <- (mtx - mt * mx) / (mxx - mx^2)
+  w0 <- (mtx - mt * mx) / (mxx - mx ^ 2)
   w1 <- mt - w0 * mx
   w <- array(c(w0, w1), dim = c(1, 2))
   return(w)
@@ -345,8 +345,8 @@ cat('SD =', sqrt(mse) |> round(2), 'cm')
 ## plt.grid()
 ## plt.show()
 show_line(w) +
-  geom_point(data    = tibble(a = X, b = t),
-             mapping = aes(x = a, y = b),
+  geom_point(data    = tibble(x_plt = X, y_plt = t),
+             mapping = aes(x = x_plt, y = y_plt),
              color   = 'cornflowerblue') +
   xlim(5, 30) + ylim(140, 180) +
   coord_fixed(ratio = 25 / 40) +
@@ -364,19 +364,22 @@ rm(list = ls(all.names = TRUE))
 
 ## # データのロード ----------
 ## data = np.load("ch5_data.npz")
-data <- read.csv('ch5_data.csv')
+set.seed(1)
+X_min <- 4; X_max <- 30; N <- 16; prm <- c(170, 108, 0.2)
+X <- 5 + 25 * runif(N)
+t <- prm[1] - prm[2] * exp(-prm[3] * X) + 4 * rnorm(N)
 ## X0 = data["X"]  # これまでのXをX0とする
-X0 <- data$X
+X0 <- X
 ## N = data["N"]
-N <- 16
+### N <- 16 ###
 ## T = data["T"]
-t <- data$t
+### t <- data$t ###
 
 ## # 2次元データ生成 ----------
 ## np.random.seed(seed=1)  # 乱数を固定
-set.seed(1)
+### set.seed(1) ###
 ## X1 = 23 * (T / 100) ** 2 + 2 * np.random.randn(N)  # X1を生成
-X1 <- 23 * (t / 100)^2 + 2 * rnorm(N)
+X1 <- 23 * (t / 100) ^ 2 + 2 * rnorm(N)
 ## X0_min, X0_max = 5, 30   # X0の下限と上限（表示用）
 X0_min <- 5; X0_max <- 30
 ## X1_min, X1_max = 40, 75  # X1の下限と上限（表示用）
@@ -440,20 +443,14 @@ show_plane <- function(w) {
   x0_n <- 5; x1_n <- 5
   x0 <- seq(X0_min, X0_max, length.out = x0_n)
   x1 <- seq(X1_min, X1_max, length.out = x1_n)
-  xx0 <- as.array(matrix(x0, nrow = x0_n, ncol = x1_n, byrow = TRUE))
-  xx1 <- array(x1, dim = c(x0_n, x1_n))
-  n <- 1
-  df <- data.frame(array(NA, dim = c(x0_n * x1_n, 3))) |>
-    rename(x0 = 'X1', x1 = 'X2', y = 'X3')
+  y <- array(0, dim = c(x0_n, x1_n))
   for (i in 1:x0_n) {
     for (j in 1:x1_n) {
-      df[n, 1] <- xx0[i, j]
-      df[n, 2] <- xx1[i, j]
-      df[n, 3] <- w[1] * xx0[i, j] + w[2] * xx1[i, j] + w[3]
-      n <- n + 1
+      y[i, j] <- w[1] * x0[i] + w[2] * x1[j] + w[3]
     }
   }
-  plot3d(df$x0, df$x1, df$y, type = 's')
+  persp(x0, x1, y, theta = 25, phi = 30,
+        xlab = '', ylab = '', zlab = '')
 }
 
 ## # 面の平均二乗誤差(MSE)関数 ----------
@@ -463,7 +460,7 @@ show_plane <- function(w) {
 ##   return mse
 mse_plane <- function(x0, x1, t, w) {
   y <- w[1] * x0 + w[2] * x1 + w[3]
-  mse <- mean((y - t)^2)
+  mse <- mean((y - t) ^ 2)
   return(mse)
 }
 
@@ -507,8 +504,8 @@ fit_plane <- function(x0, x1, t) {
   c_x0x1 <- mean(x0 * x1) - mean(x0) * mean(x1)
   v_x0 <- var(x0)
   v_x1 <- var(x1)
-  w0 <- (c_tx1 * c_x0x1 - v_x1 * c_tx0) / (c_x0x1^2 - v_x0 * v_x1)
-  w1 <- (c_tx0 * c_x0x1 - v_x0 * c_tx1) / (c_x0x1^2 - v_x0 * v_x1)
+  w0 <- (c_tx1 * c_x0x1 - v_x1 * c_tx0) / (c_x0x1 ^ 2 - v_x0 * v_x1)
+  w1 <- (c_tx0 * c_x0x1 - v_x0 * c_tx1) / (c_x0x1 ^ 2 - v_x0 * v_x1)
   w2 <- -w0 * mean(x0) - w1 * mean(x1) + mean(t)
   w <- array(c(w0, w1, w2), dim = c(1, 3))
   return(w)
@@ -531,7 +528,7 @@ cat('SD =', sqrt(mse) |> round(2), 'cm')
 ## show_plane(ax, w)
 ## show_data2d(ax, X0, X1, T)
 ## plt.show()
-planes3d(w[1], w[2], -1, w[3])
+show_plane(w)
 
 
 ## %reset
@@ -546,17 +543,20 @@ NULL
 
 ## # データのロード ----------
 ## data = np.load("ch5_data.npz")
-data <- read.csv('ch5_data.csv')
+set.seed(1)
+X_min <- 4; X_max <- 30; N <- 16; prm <- c(170, 108, 0.2)
+X <- 5 + 25 * runif(N)
+t <- prm[1] - prm[2] * exp(-prm[3] * X) + 4 * rnorm(N)
 ## X = data["X"]
-X <- data$X
+### X <- X ###
 ## X_min = 0
 X_min <- 0
 ## X_max = data["X_max"]
-X_max <- 30
+### X_max <- 30 ###
 ## N = data["N"]
-N <- 16
+### N <- 16 ###
 ## T = data["T"]
-t <- data$t
+### t <- data$t ###
 
 
 # リスト 5-3-(2)
@@ -565,7 +565,7 @@ t <- data$t
 ##   y = np.exp(-((x - mu) ** 2) / (2 * s ** 2))  # 式5-64
 ##   return y
 gauss <- function(x, mu, s) {
-  y <- exp(-((x - mu)^2) / (2 * s^2))
+  y <- exp(-((x - mu) ^ 2) / (2 * s ^ 2))
   return(y)
 }
 
@@ -583,10 +583,10 @@ xb <- seq(X_min, X_max, length.out = 100)
 ## y = np.zeros((M, 100))  # M個のガウス関数の値を入れるyを準備
 y <- array(0, dim = c(100, M)) |> # 便宜上行と列を入れ替える．
   data.frame() |>
-  rename(mu5 = 'X1',
-         mu13.3 = 'X2',
-         mu21.7 = 'X3',
-         mu30 = 'X4')
+  rename(mu1 = 'X1',
+         mu2 = 'X2',
+         mu3 = 'X3',
+         mu4 = 'X4')
 ## for j in range(M):
 ##   y[j, :] = gauss(xb, mu[j], s)    # ガウス関数
 for (j in 1:M) {
@@ -601,17 +601,17 @@ for (j in 1:M) {
 ##   plt.ylim(0, 1.2)
 ##   plt.grid()
 ##   plt.show()
-y <- y |>
-  pivot_longer(cols = mu5:mu30,
+y |>
+  pivot_longer(cols = 1:ncol(y),
                names_to = 'mu',
                values_to = 'gauss') |>
-  mutate(x = rep(xb, each = 4))
-y |> ggplot() +
-  geom_line(aes(x = x, y = gauss,
+  mutate(x_plt = rep(xb, each = 4)) |>
+  ggplot() +
+  geom_line(aes(x = x_plt, y = gauss,
                 color = mu)) +
-  labs(x = element_blank(), y = element_blank()) +
   xlim(0, 30) + ylim(0, 1) +
   coord_fixed(ratio = 30 / 1) +
+  labs(x = element_blank(), y = element_blank()) +
   theme(legend.position = 'none')
 
 
@@ -636,7 +636,7 @@ gauss_func <- function(w, x) {
   for (j in 1:m) {
     y <- y + w[j] * gauss(x, mu[j], s)
   }
-  y <- y + w[m]
+  y <- y + w[m + 1]
   return(y)
 }
 
@@ -649,7 +649,7 @@ gauss_func <- function(w, x) {
 ##   return mse
 mse_gauss_func <- function(x, t, w) {
   y <- gauss_func(w, x)
-  mse <- mean((y - t)^2)
+  mse <- mean((y - t) ^ 2)
   return(mse)
 }
 
@@ -689,9 +689,9 @@ fit_gauss_func <- function(x, t, m) {
 show_gauss_func <- function(w) {
   x <- seq(X_min, X_max, length.out = 100)
   y <- gauss_func(w, x)
-  p <- tibble(a = x, b = y |> as.vector()) |>
+  p <- tibble(x_plt = x, y_plt = y |> as.vector()) |>
     ggplot() +
-    geom_line(aes(x = a, y = b),
+    geom_line(aes(x = x_plt, y = y_plt),
               color = 'gray')
   return(p)
 }
@@ -720,9 +720,224 @@ cat('SD =', sqrt(mse) |> round(2), 'cm')
 ## plt.grid()
 ## plt.show()
 show_gauss_func(w) +
-  geom_point(data    = tibble(a = X, b = t),
-             mapping = aes(x = a, y = b),
-             color   = 'cornflowerblue')
+  geom_point(data    = tibble(x_plt = X, y_plt = t),
+             mapping = aes(x = x_plt, y = y_plt),
+             color   = 'cornflowerblue') +
+  xlim(0, 30) + ylim(120, 180) +
+  coord_fixed(ratio = 30 / 60) +
+  labs(x = element_blank(), y = element_blank())
 
-# list 5-2-5, 3dplot
-# 途中．PytyhonとRの行列計算に違い．
+
+# リスト 5-3-(8)
+## M = [2, 4, 7, 9]                    # 調べるMの値
+M <- c(2, 4, 7, 9)
+## plt.figure(figsize=(10, 2.5))
+## plt.subplots_adjust(wspace=0.3)
+## for i in range(len(M)):
+##   plt.subplot(1, len(M), i + 1)
+##   w = fit_gauss_func(X, T, M[i])  # wを計算
+##   mse = mse_gauss_func(X, T, w)   # MSEを計算
+##   # グラフ描画
+##   show_gauss_func(w)  # 線形基底関数
+##   plt.plot(           # データ点
+##     X, T, "cornflowerblue",
+##     marker="o", linestyle="None", markeredgecolor="black",
+##   )
+##   plt.title(f"M={M[i]:d}, SD={np.sqrt(mse):.2f}")
+##   plt.xlim(X_min, X_max)
+##   plt.ylim(120, 180)
+##   plt.grid()
+##
+## plt.show()
+for (i in 1:length(M)) { # 改善の余地あり．
+  w <- fit_gauss_func(X, t, M[i])
+  mse <- mse_gauss_func(X, t, w)
+  cat('SD =', sqrt(mse) |> round(2), 'cm\n')
+  p <- show_gauss_func(w) +
+    geom_point(data    = tibble(x_plt = X, y_plt = t),
+               mapping = aes(x = x_plt, y = y_plt),
+               color   = 'cornflowerblue') +
+    xlim(0, 30) + ylim(120, 180) +
+    coord_fixed(ratio = 30 / 60) +
+    labs(x = element_blank(), y = element_blank())
+  plot(p)
+}
+
+
+## # リスト 5-3-(9)
+## # メイン ----------
+## M = range(2, 10)
+M <- 2:9
+## sd = np.zeros(len(M))
+sd <- rep(0, length(M))
+## for i in range(len(M)):
+##   w = fit_gauss_func(X, T, M[i])            # wを計算
+##   sd[i] = np.sqrt(mse_gauss_func(X, T, w))  # SDを計算
+for (i in 1:length(M)) {
+  w <- fit_gauss_func(X, t, M[i])
+  sd[i] <- sqrt(mse_gauss_func(X, t, w))
+}
+
+## # グラフ描画 ----------
+## plt.figure(figsize=(5, 4))
+## plt.plot(M, sd, "cornflowerblue", marker="o", markeredgecolor="black")
+## plt.grid()
+## plt.show()
+tibble(x_plt = M, y_plt = sd) |>
+  ggplot() +
+  geom_line(aes(x = x_plt, y = y_plt),
+            color = 'cornflowerblue') +
+  geom_point(aes(x = x_plt, y = y_plt),
+             fill = 'cornflowerblue',
+             color = 'black',
+             shape = 21) +
+  xlim(2, 9) + ylim(3.00, 4.5) +
+  coord_fixed(ratio = 7 / (4.5 - 3.00)) +
+  scale_x_continuous(breaks = c(2:9),
+                     labels = c(2:9)) +
+  labs(x = element_blank(), y = element_blank())
+
+
+# リスト 5-3-(10)
+## # 訓練データとテストデータに分割----------
+## split = int(N / 4)  # 分割するインデックス
+split <- N / 4
+## X_test = X[:split]
+X_test <- X[1:split]
+## T_test = T[:split]
+T_test <- t[1:split]
+## X_train = X[split:]
+X_train <- X[(split+1):length(X)]
+## T_train = T[split:]
+T_train <- t[(split+1):length(t)]
+
+## # メイン ----------
+## M = [2, 4, 7, 9]  # 調べるMの値
+M <- c(2, 4, 7, 9)
+## plt.figure(figsize=(10, 2.5))
+## plt.subplots_adjust(wspace=0.3)
+## for i in range(len(M)):
+##   w = fit_gauss_func(X_train, T_train, M[i])       # wを計算
+##   sd = np.sqrt(mse_gauss_func(X_test, T_test, w))  # SDを計算
+##   # グラフ描画
+##   plt.subplot(1, len(M), i + 1)
+##   show_gauss_func(w)  # 線形基底関数
+##   plt.plot(           # 訓練データ
+##     X_train, T_train, "white",
+##     marker="o", linestyle="None", markeredgecolor="black", 
+##     label="training",
+##   )
+##   plt.plot(           # テストデータ
+##     X_test, T_test, "cornflowerblue",
+##     marker="o", linestyle="None", markeredgecolor="black",
+##     label="test",
+##   )
+##   plt.title(f"M={M[i]:d}, SD={sd:.2f}")
+##   plt.legend(loc="lower right", fontsize=10, numpoints=1)
+##   plt.xlim(X_min, X_max)
+##   plt.ylim(120, 180)
+##   plt.grid()
+## plt.show()
+for (i in 1:length(M)) {
+  w <- fit_gauss_func(X_train, T_train, M[i])
+  sd <- sqrt(mse_gauss_func(X_test, T_test, w))
+  p <- show_gauss_func(w) +
+    geom_point(data    = tibble(x_plt = X_train, y_plt = T_train),
+               mapping = aes(x = x_plt, y = y_plt),
+               fill    = 'white',
+               color   = 'black',
+               shape   = 21) +
+    geom_point(data    = tibble(x_plt = X_test, y_plt = T_test),
+               mapping = aes(x = x_plt, y = y_plt),
+               fill    = 'cornflowerblue',
+               color   = 'black',
+               shape   = 21) +
+    xlim(0, 30) + ylim(120, 180) +
+    coord_fixed(ratio = 30 / 60) +
+    labs(x = element_blank(), y = element_blank())
+  plot(p)
+}
+
+
+# リスト 5-3-(11)
+## # メイン ----------
+## M = range(2, 10)  # 調べるMの値、2から9
+M <- 2:9
+## sd_train = np.zeros(len(M))
+sd_train <- rep(0, length(M))
+## sd_test = np.zeros(len(M))
+sd_test <- rep(0, length(M))
+## for i in range(len(M)):
+##   # wを計算
+##   w = fit_gauss_func(X_train, T_train, M[i])
+##   # 訓練データのSDを計算
+##   sd_train[i] = np.sqrt(mse_gauss_func(X_train, T_train, w))
+##   # テストデータのSDを計算
+##   sd_test[i] = np.sqrt(mse_gauss_func(X_test, T_test, w))
+for (i in 1:length(M)) {
+  w <- fit_gauss_func(X_train, T_train, M[i])
+  sd_train[i] <- sqrt(mse_gauss_func(X_train, T_train, w))
+  sd_test[i] <- sqrt(mse_gauss_func(X_test, T_test, w))
+}
+
+## # グラフ描画 ----------
+## plt.figure(figsize=(5, 4))
+## plt.plot(  # 訓練データのSD
+##   M, sd_train, "black",
+##   marker="o", linestyle="-", 
+##   markerfacecolor="white", markeredgecolor="black",
+##   label="training",
+## )
+## plt.plot(  # テストデータのSD
+##   M, sd_test, "cornflowerblue",
+##   marker="o", linestyle="-",
+##   markeredgecolor="black",
+##   label="test",
+## )
+## plt.legend(loc="upper left", fontsize=10)
+## plt.ylim(0, 12)
+## plt.grid()
+## plt.show()
+tibble(x_plt = c(M, M),
+       y_plt = c(sd_train, sd_test),
+       train_test = rep(c('training', 'test'), each = length(M))) |>
+  ggplot(aes(x = x_plt, y = y_plt)) +
+  geom_line(aes(color = train_test)) +
+  geom_point(aes(fill = train_test),
+             color = 'black', shape = 21) +
+  xlim(2, 9) + ylim(1, 10) +
+  coord_fixed(ratio = 7 / 9) +
+  scale_color_discrete(name = element_blank()) +
+  scale_fill_discrete(name = element_blank()) +
+  labs(x = element_blank(), y = element_blank())
+
+
+# リスト 5-3-(12)
+## # K 分割交差検証 ----------
+## def kfold_gauss_func(x, t, m, k):
+##   n = x.shape[0]
+##   mse_train = np.zeros(k)
+##   mse_test = np.zeros(k)
+##   for i in range(0, k):
+##     # 訓練データとテストデータに分割
+##     # (A) テストデータのインデックス
+##     i_test = np.fmod(range(n), k)
+##     x_test = x[i_test == i]   # テストデータ x 
+##     t_test = t[i_test == i]   # テストデータ t
+##     x_train = x[i_test != i]  # 訓練データ x
+##     t_train = t[i_test != i]  # 訓練データ t
+##     # wを訓練データで決める
+##     w = fit_gauss_func(x_train, t_train, m)
+##     # 訓練データのMSEを計算
+##     mse_train[i] = mse_gauss_func(x_train, t_train, w)
+##     # テストデータのMSEを計算
+##     mse_test[i] = mse_gauss_func(x_test, t_test, w)
+##   return mse_train, mse_test
+kfold_gauss_func <- function(x, t, m, k) {
+  n <- nrow(x)
+  mse_train <- rep(0, times = k)
+  mse_test <- rep(0, times = k)
+  for (i in 1:k) {
+    i_test <- fmod()
+  }
+}

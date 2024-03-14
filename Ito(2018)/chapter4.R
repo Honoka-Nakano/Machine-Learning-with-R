@@ -177,8 +177,8 @@ for (i in 1:w0_n) {
 df |>
   ggplot(aes(ww0, ww1, z = f_num)) +
   geom_contour() +
-  labs(x = expression(w[0]), y = expression(w[1])) +
-  coord_fixed(ratio = 1)
+  coord_fixed(ratio = 1) +
+  labs(x = expression(w[0]), y = expression(w[1]))
 ## # ベクトル表示
 ## plt.subplot(1, 2, 2)
 ## plt.quiver(                      # (G) fの勾配のベクトル表示
@@ -196,8 +196,8 @@ df |>
                    y = ww1, yend = ww1 + dw1 / 30),
                linewidth = 0.3,
                arrow = arrow(length = unit(0.1, 'cm'))) +
-  labs(x = expression(w[0]), y = expression(w[1])) +
-  coord_fixed(ratio = 1)
+  coord_fixed(ratio = 1) +
+  labs(x = expression(w[0]), y = expression(w[1]))
 
 
 ## %reset
@@ -347,14 +347,14 @@ tibble(x_plt = c(x, x, x),
        col   = rep(c('1', '2', '3'), each = length(x))) |>
   ggplot(aes(x = x_plt, y = y_plt, color = col)) +
   geom_line() +
-  labs(x = element_blank(), y = element_blank()) +
   xlim(-4, 4) + ylim(-2, 6) +
   coord_fixed(ratio = 8 / 8) +
   scale_color_manual(values = c('black', 'cornflowerblue', 'gray'),
                      name   = element_blank(),
                      labels = c(expression(y == 2 ^ x),
                                 expression(y == 3 ^ x),
-                                expression(y == 0.5 ^ x)))
+                                expression(y == 0.5 ^ x))) +
+  labs(x = element_blank(), y = element_blank())
 
 
 # リスト 4-5-(2)
@@ -389,9 +389,9 @@ ggplot() +
   geom_line(data     = tibble(x_plt = x, y_plt = x),  # y = x
             mapping  = aes(x = x_plt, y = y_plt),
             linetype = 'dashed') +
-  labs(x = element_blank(), y = element_blank()) +
   xlim(-8, 8) + ylim(-8, 8) +
-  coord_fixed(ratio = 1)
+  coord_fixed(ratio = 1) +
+  labs(x = element_blank(), y = element_blank())
   
 
 # リスト 4-5-(3)
@@ -420,9 +420,9 @@ ggplot() +
   geom_line(data    = tibble(x_plt = x, y_plt = logy), # 対数化
             mapping = aes(x = x_plt, y = y_plt),
             color   = 'cornflowerblue') +
-  labs(x = element_blank(), y = element_blank()) +
   xlim(-4, 4) + ylim(-4, 8) +
-  coord_fixed(ratio = 8 / 12)
+  coord_fixed(ratio = 8 / 12) +
+  labs(x = element_blank(), y = element_blank())
 
 
 # リスト 4-5-(4)
@@ -451,9 +451,9 @@ ggplot() +
             linetype = 'dashed') +
   geom_line(data    = tibble(x_plt = x, y_plt = dy), # y'
             mapping = aes(x = x_plt, y = y_plt)) +
-  labs(x = element_blank(), y = element_blank()) +
   xlim(-4, 4) + ylim(-1, 8) +
-  coord_fixed(ratio = 8 / 9)
+  coord_fixed(ratio = 8 / 9) +
+  labs(x = element_blank(), y = element_blank())
 
 
 # リスト 4-5-(5)
@@ -480,9 +480,9 @@ ggplot() +
             linetype = 'dashed') +
   geom_line(data    = tibble(x_plt = x, y_plt = dy), # y'
             mapping = aes(x = x_plt, y = y_plt)) +
-  labs(x = element_blank(), y = element_blank()) +
   xlim(-1, 4) + ylim(-8, 8) +
-  coord_fixed(ratio = 5 / 16)
+  coord_fixed(ratio = 5 / 16) +
+  labs(x = element_blank(), y = element_blank())
 
 
 # リスト 4-5-(6)
@@ -502,9 +502,9 @@ y <- 1 / (1 + exp(-x))
 ggplot() +
   geom_line(data    = tibble(x_plt = x, y_plt = y),
             mapping = aes(x = x_plt, y = y_plt)) +
-  labs(x = element_blank(), y = element_blank()) +
   xlim(-10, 10) + ylim(-1, 2) +
-  coord_fixed(ratio = 20 / 3)
+  coord_fixed(ratio = 20 / 3) +
+  labs(x = element_blank(), y = element_blank())
 
 
 # リスト 4-5-(7)
@@ -601,9 +601,9 @@ ggplot() +
   geom_line(data    = tibble(c = x, d = gauss(2, 2, 0.5, x)), # 平均2，標準偏差2，高さ0.5
             mapping = aes(x = c, y = d),
             color   = 'gray') +
-  labs(x = element_blank(), y = element_blank()) +
   xlim(-4, 4) + ylim(-0.5, 1.5) +
-  coord_fixed(ratio = 8 / 2)
+  coord_fixed(ratio = 8 / 2) +
+  labs(x = element_blank(), y = element_blank())
 
 
 ## %reset
@@ -707,9 +707,9 @@ for (i in 1:x0_n) {
 df |>
   ggplot(aes(x0, x1, z = f)) +
   geom_contour() +
-  labs(x = expression(x[0]), y = expression(x[1])) +
   xlim(-2, 3) + ylim(-2, 3) +
-  coord_fixed(ratio = 5 / 5)
+  coord_fixed(ratio = 5 / 5) +
+  labs(x = expression(x[0]), y = expression(x[1]))
 # サーフェス表示
 ## ax = plt.subplot(1, 2, 2, projection="3d")
 ## ax.plot_surface(
